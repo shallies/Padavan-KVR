@@ -11,88 +11,97 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+
     steps:
-      - name: 拉取源码
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 安装编译依赖
-        run: |
-          sudo apt update
-          sudo apt install -y autoconf automake bison build-essential flex gawk gettext git libncurses-dev libssl-dev libtool m4 pkg-config unzip zlib1g-dev python3
-
-      - name: 配置纯净编译参数（仅K2P、全关多余插件、强制开启KVR）
-        run: |
-          cat > .config << EOF
-# 目标机型锁定K2P
-CONFIG_TARGET_K2P=y
-
-# 基础WEB后台必开
-CONFIG_FIRMWARE_INCLUDE_LUCI=y
-
-# 存储/文件服务全部关闭
-CONFIG_FIRMWARE_INCLUDE_SMBD=n
-CONFIG_FIRMWARE_INCLUDE_FTP=n
-CONFIG_FIRMWARE_INCLUDE_NFS=n
-
-# DDNS/动态域名关闭
-CONFIG_FIRMWARE_INCLUDE_DDNS_SYNCNT=n
-CONFIG_FIRMWARE_INCLUDE_DDNS_NOIP=n
-CONFIG_FIRMWARE_INCLUDE_DDNS_DYNDNS=n
-
-# 下载工具全部关闭
-CONFIG_FIRMWARE_INCLUDE_TRANSMISSION=n
-CONFIG_FIRMWARE_INCLUDE_AIRA2=n
-CONFIG_FIRMWARE_INCLUDE_QBITTORRENT=n
-
-# 各类代理/魔法插件全部关闭
-CONFIG_FIRMWARE_INCLUDE_V2RAY=n
-CONFIG_FIRMWARE_INCLUDE_XRAY=n
-CONFIG_FIRMWARE_INCLUDE_OPENVPN=n
-CONFIG_FIRMWARE_INCLUDE_WIREGUARD=n
-CONFIG_FIRMWARE_INCLUDE_SS=n
-CONFIG_FIRMWARE_INCLUDE_SSR=n
-
-# 广告过滤、DNS增强关闭
-CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME=n
-CONFIG_FIRMWARE_INCLUDE_SMARTDNS=n
-
-# 增值小工具关闭
-CONFIG_FIRMWARE_INCLUDE_KMS=n
-CONFIG_FIRMWARE_INCLUDE_WOL=n
-CONFIG_FIRMWARE_INCLUDE_UPNP_TOOLS=n
-CONFIG_FIRMWARE_INCLUDE_IPTV=n
-CONFIG_FIRMWARE_INCLUDE_MULTIWAN=n
-CONFIG_FIRMWARE_INCLUDE_QOS=n
-CONFIG_FIRMWARE_INCLUDE_FLOW_OFFLOAD=n
-
-# 无线KVR强制开启（核心）
-CONFIG_WIFI_KVR_SUPPORT=y
-CONFIG_WIFI_80211R=y
-CONFIG_WIFI_80211K=y
-CONFIG_WIFI_80211V=y
-CONFIG_WIFI_IAPP_SUPPORT=y
-
-# 无线驱动完整启用MT7615
-CONFIG_WIFI_DRIVER_FULL=y
-EOF
-
-      - name: 开始编译固件
-        run: |
-          make clean
-          make -j$(nproc)
-
-      - name: 打包固件产物
-        run: |
-          mkdir -p output_firmware
-          cp ./bin/K2P/*.trx output_firmware/
-          cp ./bin/K2P/*.md5 output_firmware/
-          ls -lh output_firmware
-
-      - name: 上传固件到Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: K2P-Pure-KVR-Firmware
-          path: output_firmware
-          retention-days: 30
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot \
+        cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
+        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
+    - name: Clone source code
+      env:
+        KERNEL: 3.4
+      run: |
+        git clone --depth=1 https://github.com/fightroad/Padavan-KVR.git /opt/rt-n56u
+        cd /opt/rt-n56u/toolchain-mipsel
+        sh dl_toolchain.sh
+        mkdir -p /opt/images/
+    - name: Build Firmware
+      env:
+        TNAME: K2P
+        KERNEL: 3.4
+      run: |
+        cd /opt/rt-n56u/trunk
+        if [ ! -f configs/templates/$TNAME.config ] ; then
+        echo "configs/templates/$TNAME.config not found "
+        exit 1
+        fi
+        cp -f configs/templates/$TNAME.config .config
+        ################################################################################################
+        #因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条，切记！！！
+        ################################################################################################
+        
+        sed -i 's/CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=y/CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=n/g' .config
+        sed -i 's/CONFIG_FIRMWARE_INCLUDE_MENTOHUST=y/CONFIG_FIRMWARE_INCLUDE_MENTOHUST=n/g' .config
+        sed -i 's/CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=y/CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=n/g' .config
+        sed -i 's/CONFIG_FIRMWARE_INCLUDE_SRELAY=y/CONFIG_FIRMWARE_INCLUDE_SRELAY=n/g' .config
+        sed -i 's/CONFIG_FIRMWARE_INCLUDE_NJIT_CLIENT=y/CONFIG_FIRMWARE_INCLUDE_NJIT_CLIENT=n/g' .config
+        sed -i 's/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=n/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=y/g' .config
+        
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_TRANSMISSION/d' .config 
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_TRANSMISSION_WEB_CONTROL/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_ARIA/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_ARIA_WEB_CONTROL/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_ZEROTIER/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_FRPC/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_ALIDDNS/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_V2RAY/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_XRAY/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_TROJAN/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_SSOBFS/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_SERVER/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_NPC/d' .config
+        sed -i '/CONFIG_FIRMWARE_WEBUI_HIDE_VPN/d' .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_OPENVPN/d' .config
+        ######################################################################
+        #以下选项是定义你需要的功能（y=集成,n=忽略），重新写入到.config文件
+        ######################################################################
+        ##内网穿透
+        #echo "CONFIG_FIRMWARE_INCLUDE_NPC=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_ZEROTIER=y" >> .config #zerotier ~1.3M
+        echo "CONFIG_FIRMWARE_INCLUDE_FRPC=y" >> .config  #frpc
+        #echo "CONFIG_FIRMWARE_INCLUDE_ALIDDNS=y" >> .config #aliddns
+        ##科学上网##
+        #echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=y" >> .config
+        #echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=y" >> .config
+        #echo "CONFIG_FIRMWARE_INCLUDE_XRAY=y" >> .config
+        #echo "CONFIG_FIRMWARE_INCLUDE_TROJAN=y" >> .config
+        ##vpn
+        #echo  "CONFIG_FIRMWARE_INCLUDE_OPENVPN=n" >> .config
+        #echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_SERVER=y" >> .config
+        #echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT=y" >> .config
+        #echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD=y" >> .config
+        
+        ###############################################################################
+        ##########
+        #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
+        #格式如下：
+        #sed -i '/自定义项/d' .config
+        #echo "自定义项=y" >> .config
+        #########################################################################################
+        sed -i 's/\r//' /opt/rt-n56u/trunk/.config
+        sudo ./clear_tree
+        sudo ./build_firmware_modify $TNAME 0
+        sudo mv -f images/*.trx /opt/images/
+    - name : Upload packages
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: Padavan-packages
+        path: /opt/images
