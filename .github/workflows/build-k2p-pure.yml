@@ -23,9 +23,11 @@ jobs:
           sudo apt install -y autoconf automake bison build-essential flex gawk gettext git libncurses-dev libssl-dev libtool m4 pkg-config unzip zlib1g-dev python3 python3-docutils
           sudo ln -sf /usr/bin/python3 /usr/bin/python
 
-      - name: 生成纯净K2P配置（关闭所有多余插件，开启KVR）
+      - name: 生成纯净K2P配置（先清理旧产物，再新建.config）
         run: |
           cd trunk
+          # 清理旧编译输出，不删除.config（后面会新建覆盖）
+          rm -rf bin build toolchain
           echo "CONFIG_TARGET_K2P=y" > .config
           echo "CONFIG_FIRMWARE_INCLUDE_LUCI=y" >> .config
           echo "CONFIG_FIRMWARE_INCLUDE_SMBD=n" >> .config
@@ -67,10 +69,9 @@ jobs:
           find . -name "CMakeLists.txt" -o -name "Makefile" -exec sed -i '/Wno-unsafe-buffer-usage/d' {} \;
           export CFLAGS="-Wno-return-type"
 
-      - name: 编译固件（移除make clean，手动清理）
+      - name: 编译固件
         run: |
           cd trunk
-          rm -rf bin build toolchain .config
           make -j$(nproc)
 
       - name: 打包固件
