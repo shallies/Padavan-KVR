@@ -18,16 +18,13 @@ jobs:
           fetch-depth: 0
 
       - name: 安装编译依赖
-        run:
-          if [ -f "/etc/apt/sources.list.d/google-chrome.list" ]; then
-            sudo sed -i '/dl.google.com/d' /etc/apt/sources.list.d/google-chrome.list
-          fi
+        run: |
           sudo apt update
           sudo apt install -y autoconf automake bison build-essential flex gawk gettext git libncurses-dev libssl-dev libtool m4 pkg-config unzip zlib1g-dev python3 python3-docutils
           sudo ln -sf /usr/bin/python3 /usr/bin/python
 
-      - name: 生成纯净配置
-        run:
+      - name: 生成纯净K2P配置（关闭所有多余插件，开启KVR）
+        run: |
           echo "CONFIG_TARGET_K2P=y" > .config
           echo "CONFIG_FIRMWARE_INCLUDE_LUCI=y" >> .config
           echo "CONFIG_FIRMWARE_INCLUDE_SMBD=n" >> .config
@@ -63,24 +60,24 @@ jobs:
           echo "CONFIG_WIFI_IAPP_SUPPORT=y" >> .config
           echo "CONFIG_WIFI_DRIVER_FULL=y" >> .config
 
-      - name: 修复GCC警告参数
-        run:
+      - name: GCC兼容修复，消除msd_lite编译报错
+        run: |
           find . -name "CMakeLists.txt" -o -name "Makefile" -exec sed -i '/Wno-unsafe-buffer-usage/d' {} \;
           export CFLAGS="-Wno-return-type"
 
       - name: 编译固件
-        run:
+        run: |
           make clean
           make -j$(nproc)
 
       - name: 打包固件
-        run:
+        run: |
           mkdir -p output_firmware
           cp ./bin/K2P/*.trx output_firmware/
           cp ./bin/K2P/*.md5 output_firmware/
           ls -lh output_firmware
 
-      - name: 上传固件
+      - name: 上传固件产物
         uses: actions/upload-artifact@v4
         with:
           name: K2P-Pure-KVR-Firmware
