@@ -17,36 +17,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 安装编译依赖
+      - name: 安装编译依赖（修复python-docutils报错）
         run: |
+          sudo sed -i '/dl.google.com/d' /etc/apt/sources.list.d/google-chrome.list
           sudo apt update
-          sudo apt install -y autoconf automake bison build-essential flex gawk gettext git libncurses-dev libssl-dev libtool m4 pkg-config unzip zlib1g-dev python3
+          sudo apt install -y autoconf automake bison build-essential flex gawk gettext git libncurses-dev libssl-dev libtool m4 pkg-config unzip zlib1g-dev python3 python3-docutils
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
 
-      - name: 配置纯净编译参数（仅K2P、全关多余插件、强制开启KVR）
+      - name: 生成纯净K2P配置（彻底关闭msd_lite/samba，解决编译失败）
         run: |
-          cat > .config << EOF
-# 目标机型锁定K2P
+          cat > .config <<'EOF'
+# 锁定K2P机型
 CONFIG_TARGET_K2P=y
-
-# 基础WEB后台必开
+# 仅保留网页后台
 CONFIG_FIRMWARE_INCLUDE_LUCI=y
 
-# 存储/文件服务全部关闭
+# 彻底关闭文件共享（本次编译报错根源）
 CONFIG_FIRMWARE_INCLUDE_SMBD=n
+CONFIG_FIRMWARE_INCLUDE_MSD_LITE=n
+CONFIG_FIRMWARE_INCLUDE_SAMBA=n
 CONFIG_FIRMWARE_INCLUDE_FTP=n
 CONFIG_FIRMWARE_INCLUDE_NFS=n
 
-# DDNS/动态域名关闭
+# DDNS全部关闭
 CONFIG_FIRMWARE_INCLUDE_DDNS_SYNCNT=n
 CONFIG_FIRMWARE_INCLUDE_DDNS_NOIP=n
 CONFIG_FIRMWARE_INCLUDE_DDNS_DYNDNS=n
 
-# 下载工具全部关闭
+# 下载工具全关
 CONFIG_FIRMWARE_INCLUDE_TRANSMISSION=n
 CONFIG_FIRMWARE_INCLUDE_AIRA2=n
 CONFIG_FIRMWARE_INCLUDE_QBITTORRENT=n
 
-# 各类代理/魔法插件全部关闭
+# 代理/魔法插件全关
 CONFIG_FIRMWARE_INCLUDE_V2RAY=n
 CONFIG_FIRMWARE_INCLUDE_XRAY=n
 CONFIG_FIRMWARE_INCLUDE_OPENVPN=n
@@ -54,11 +57,11 @@ CONFIG_FIRMWARE_INCLUDE_WIREGUARD=n
 CONFIG_FIRMWARE_INCLUDE_SS=n
 CONFIG_FIRMWARE_INCLUDE_SSR=n
 
-# 广告过滤、DNS增强关闭
+# DNS广告过滤关闭
 CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME=n
 CONFIG_FIRMWARE_INCLUDE_SMARTDNS=n
 
-# 增值小工具关闭
+# 增值工具关闭
 CONFIG_FIRMWARE_INCLUDE_KMS=n
 CONFIG_FIRMWARE_INCLUDE_WOL=n
 CONFIG_FIRMWARE_INCLUDE_UPNP_TOOLS=n
@@ -67,30 +70,34 @@ CONFIG_FIRMWARE_INCLUDE_MULTIWAN=n
 CONFIG_FIRMWARE_INCLUDE_QOS=n
 CONFIG_FIRMWARE_INCLUDE_FLOW_OFFLOAD=n
 
-# 无线KVR强制开启（核心）
+# KVR漫游强制开启
 CONFIG_WIFI_KVR_SUPPORT=y
 CONFIG_WIFI_80211R=y
 CONFIG_WIFI_80211K=y
 CONFIG_WIFI_80211V=y
 CONFIG_WIFI_IAPP_SUPPORT=y
-
-# 无线驱动完整启用MT7615
 CONFIG_WIFI_DRIVER_FULL=y
 EOF
 
-      - name: 开始编译固件
+      - name: GCC兼容修复（消除-Wno-unsafe-buffer-usage报错）
         run: |
+          find . -name "CMakeLists.txt" -o -name "Makefile" -exec sed -i '/Wno-unsafe-buffer-usage/d' {} \;
+          echo "export CFLAGS=-Wno-return-type" >> ~/.bashrc
+
+      - name: 编译固件
+        run: |
+          source ~/.bashrc
           make clean
           make -j$(nproc)
 
-      - name: 打包固件产物
+      - name: 打包固件
         run: |
           mkdir -p output_firmware
           cp ./bin/K2P/*.trx output_firmware/
           cp ./bin/K2P/*.md5 output_firmware/
           ls -lh output_firmware
 
-      - name: 上传固件到Artifacts
+      - name: 上传固件产物
         uses: actions/upload-artifact@v4
         with:
           name: K2P-Pure-KVR-Firmware
