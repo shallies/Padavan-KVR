@@ -25,6 +25,7 @@ jobs:
 
       - name: 生成纯净K2P配置（关闭所有多余插件，开启KVR）
         run: |
+          cd trunk
           echo "CONFIG_TARGET_K2P=y" > .config
           echo "CONFIG_FIRMWARE_INCLUDE_LUCI=y" >> .config
           echo "CONFIG_FIRMWARE_INCLUDE_SMBD=n" >> .config
@@ -62,19 +63,21 @@ jobs:
 
       - name: GCC兼容修复，消除msd_lite编译报错
         run: |
+          cd trunk
           find . -name "CMakeLists.txt" -o -name "Makefile" -exec sed -i '/Wno-unsafe-buffer-usage/d' {} \;
           export CFLAGS="-Wno-return-type"
 
       - name: 编译固件
         run: |
+          cd trunk
           make clean
           make -j$(nproc)
 
       - name: 打包固件
         run: |
           mkdir -p output_firmware
-          cp ./bin/K2P/*.trx output_firmware/
-          cp ./bin/K2P/*.md5 output_firmware/
+          cp trunk/bin/K2P/*.trx output_firmware/
+          cp trunk/bin/K2P/*.md5 output_firmware/
           ls -lh output_firmware
 
       - name: 上传固件产物
