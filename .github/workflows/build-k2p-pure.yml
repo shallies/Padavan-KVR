@@ -67,10 +67,10 @@ jobs:
           find . -name "CMakeLists.txt" -o -name "Makefile" -exec sed -i '/Wno-unsafe-buffer-usage/d' {} \;
           export CFLAGS="-Wno-return-type"
 
-      - name: 编译固件
+      - name: 编译固件（移除make clean，手动清理）
         run: |
           cd trunk
-          make clean
+          rm -rf bin build toolchain .config
           make -j$(nproc)
 
       - name: 打包固件
