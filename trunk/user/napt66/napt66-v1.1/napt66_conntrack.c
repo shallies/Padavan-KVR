@@ -335,7 +335,7 @@ int get_entry(struct sk_buff *skb,struct conn_entry** pp_entry,int direc)
 	if(inet6_addr_flag == false){
 		status = get_ip6_by_name(wan_if,&wan_ipv6);
 		if(status <= 0){
-			printk(KERN_INFO "get_ip6_by_name() failed.\n");
+			//printk(KERN_INFO "get_ip6_by_name() failed.\n");
 			return 0;
 		}
 		printk(KERN_INFO "get_ip6_by_name() succeed.\n");
