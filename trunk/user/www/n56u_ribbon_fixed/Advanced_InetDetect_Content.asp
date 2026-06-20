@@ -196,7 +196,7 @@ function done_validating(action){
                                         <tr>
                                             <th><#PingCheckICMP_IP#>:</th>
                                             <td>
-                                                <input type="text" maxlength="15" class="input" size="15" name="di_addr5" style="width: 145px" value="<% nvram_get_x("","di_addr5"); %>" onkeypress="return is_ipaddr(this,event);"/>&nbsp;:
+                                                <input type="text" maxlength="15" class="input" size="15" name="di_addr5" style="width: 145px" value="<% nvram_get_x("","di_addr5"); %>" onkeypress="return is_ipaddr(this,event);"/>
                                                 <input type="hidden" maxlength="5" class="input" size="10" name="di_port5" style="width: 44px;"  value="<% nvram_get_x("","di_port5"); %>" onkeypress="return is_number(this,event);"/>
                                             </td>
                                         </tr>
