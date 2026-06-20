@@ -103,7 +103,7 @@ jobs:
 
     - name: Set Package Name
       id: naming
-      run: echo "PackageName=Padavan-K2P-$(date +%Y%m%d)" >> $GITHUB_OUTPUT
+      run: echo "PackageName=K2P-$(date +%Y%m%d-%H%M)" >> $GITHUB_OUTPUT
 
     - name : Upload packages
       uses: actions/upload-artifact@v4
