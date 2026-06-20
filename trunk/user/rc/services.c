@@ -858,9 +858,9 @@ doSystem("/usr/sbin/skipd -d /etc/storage/db");
 #if defined(APP_TTYD)
 	start_ttyd();
 #endif
-#if defined(APP_VLMCSD)
-	start_vlmcsd();
-#endif
+//#if defined(APP_VLMCSD)
+//	start_vlmcsd();
+//#endif
 	start_lltd();
 	start_watchdog_cpu();
 	start_crond();
