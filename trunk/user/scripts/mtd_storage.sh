@@ -332,6 +332,45 @@ EOF
 ### \$2 - WAN interface name (e.g. eth3 or ppp0)
 ### \$3 - WAN IPv4 address
 
+case "$1" in
+up)
+vCron="/etc/storage/cron/crontabs/admin"
+vOn=`grep "led.sh \{1,\}-ON" $vCron 2>/dev/null|awk '{print $2*60+$1}'`
+vOff=`grep "led.sh \{1,\}-OFF" $vCron 2>/dev/null|awk '{print $2*60+$1}'`
+
+if [ "$vOn" = "" ] || [ "$vOff" = "" ]; then
+	vCur=0
+	vOn=0
+	vOff=1
+else
+	vOff=$(expr $vOff - $vOn )
+	while [ $vOff -le 0 ]; do
+		vOff=$((vOff+24*60))
+	done
+
+	vCur=$(expr `date +%H` \* 60 + `date +%M` - $vOn)
+	while [ $vCur -lt 0 ]; do
+		vCur=$((vCur+24*60))
+	done
+fi
+
+if [ $vCur -lt $vOff ]; then
+	/etc/storage/led.sh blue "Internet已连接，开启蓝灯"
+else
+	/etc/storage/led.sh -OFF "Internet已连接，关闭指示灯"
+fi
+
+#/usr/bin/unblockmusic.sh restart
+;;
+
+down)
+/etc/storage/led.sh yellow "Internet未连接，开启黄灯"
+;;
+
+*)
+;;
+esac
+
 EOF
 		chmod 755 "$script_postw"
 	fi
@@ -519,6 +558,14 @@ dhcp-option=252,"\n"
 
 ### Keep DHCP host name valid at any times
 #dhcp-to-host
+
+### vlmcsd related
+srv-host=_vlmcs._tcp,kms.iiscn.local,1688,0,100
+
+### Custom DNS
+address=/wukongtv.com/127.0.0.1
+address=/iiscn.local/192.168.2.1
+min-ttl=0
 
 EOF
 	if [ -f /usr/bin/vlmcsd ]; then
