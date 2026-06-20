@@ -500,7 +500,8 @@ var tabM6 = [
 var tabM7 = [
 	{ "title": "<#menu5_10_1#>", "link": "Advanced_Tweaks_Content.asp" },
 	{ "title": "<#menu5_10_2#>", "link": "Advanced_Scripts_Content.asp" },
-	{ "title": "<#menu5_10_3#>", "link": "Advanced_InetDetect_Content.asp" }
+	{ "title": "<#menu5_10_3#>", "link": "Advanced_InetDetect_Content.asp" },
+	{ "title": "<#menu5_22#>", "link": "Advanced_web.asp" }
 ];
 var tabM8 = [
 	{ "title": "<#menu5_11#>", "link": "Main_WStatus2g_Content.asp" },
