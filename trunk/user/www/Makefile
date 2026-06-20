@@ -9,7 +9,7 @@ include $(ROOTDIR)/user/shared/boards.mk
 PROJECT_HOME_URL="https:\/\/bitbucket.org\/padavan\/rt-n56u\/"
 PROJECT_HOME_URL_MOD="https:\/\/github.com\/hanwckf\/rt-n56u\/"
 
-LABEL_COPYRIGHT_TEXT='© 2011-2023 <a href="https:\/\/bitbucket.org\/padavan\/rt-n56u" target="blank">Padavan<\/a> \& N56U project community \& by <a href="https:\/\/github.com\/hanwckf\/rt-n56u" target="blank">hanwckf<\/a>'
+LABEL_COPYRIGHT_TEXT='© 2011-2026 <a href="https:\/\/bitbucket.org\/padavan\/rt-n56u" target="blank">Padavan<\/a> \& N56U project community \& by <a href="https:\/\/github.com\/hanwckf\/rt-n56u" target="blank">hanwckf<\/a>'
 
 BOARD_PATTERN=s/ZVMODELVZ/$(CONFIG_FIRMWARE_PRODUCT_ID)/g
 COPYR_PATTERN=s/ZVCOPYRVZ/$(LABEL_COPYRIGHT_TEXT)/g
@@ -26,7 +26,7 @@ romfs:
 	cp -R $(WEBUI_NAME) $(ROMFS_DIR)/www
 	rm -f $(ROMFS_DIR)/www/httpd_check.htm
 	echo "ASUSTeK" > $(ROMFS_DIR)/www/httpd_check.htm
-	cd $(ROMFS_DIR)/www && ln -sf /opt/share/www/custom custom
+	cd $(ROMFS_DIR)/www && ln -sf /etc/storage/shared_www_custom custom
 	cp dict/EN.header $(ROMFS_DIR)/www
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_BR),y)
 	echo "LANG_BR=Brazil" >> $(ROMFS_DIR)/www/EN.header
