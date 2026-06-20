@@ -224,7 +224,14 @@ func_fill()
 	#gfwlist_conf_file="/etc_ro/gfwlist.bz2"
 
 	# create crond dir
-	[ ! -d "$dir_crond" ] && mkdir -p -m 730 "$dir_crond"
+	if [ ! -d "$dir_crond" ] ; then
+		mkdir -p -m 730 "$dir_crond"
+		cat > "$dir_crond/admin" <<EOF
+30 21 * * * /etc/storage/led.sh -OFF "定时关闭"
+30 06 * * * /etc/storage/led.sh -ON "定时开启"
+30 03 * * * /sbin/restart_wan
+EOF
+	fi
 
 	# create https dir
 	[ ! -d "$dir_httpssl" ] && mkdir -p -m 700 "$dir_httpssl"
@@ -355,16 +362,14 @@ else
 fi
 
 if [ $vCur -lt $vOff ]; then
-	/etc/storage/led.sh blue "Internet已连接，开启蓝灯"
+	/usr/bin/led.sh blue "Internet已连接，开启蓝灯"
 else
-	/etc/storage/led.sh -OFF "Internet已连接，关闭指示灯"
+	/usr/bin/led.sh -OFF "Internet已连接，关闭指示灯"
 fi
-
-#/usr/bin/unblockmusic.sh restart
 ;;
 
 down)
-/etc/storage/led.sh yellow "Internet未连接，开启黄灯"
+/usr/bin/led.sh yellow "Internet未连接，开启黄灯"
 ;;
 
 *)
