@@ -197,6 +197,7 @@ func_fill()
 	dir_wlan="$dir_storage/wlan"
 	dir_chnroute="$dir_storage/chinadns"
 	#dir_gfwlist="$dir_storage/gfwlist"
+	dir_shared_www_custom="$dir_storage/shared_www_custom"
 
 	script_start="$dir_storage/start_script.sh"
 	script_started="$dir_storage/started_script.sh"
@@ -207,6 +208,7 @@ func_fill()
 	script_vpnsc="$dir_storage/vpns_client_script.sh"
 	script_vpncs="$dir_storage/vpnc_server_script.sh"
 	script_ezbtn="$dir_storage/ez_buttons_script.sh"
+	script_post_tc="$dir_storage/post_time_changed_script.sh"
 
 	user_hosts="$dir_dnsmasq/hosts"
 	user_dnsmasq_conf="$dir_dnsmasq/dnsmasq.conf"
@@ -226,6 +228,9 @@ func_fill()
 
 	# create https dir
 	[ ! -d "$dir_httpssl" ] && mkdir -p -m 700 "$dir_httpssl"
+
+	# create dir_shared_www_custom
+	[ ! -d "$dir_shared_www_custom" ] && mkdir -p -m 730 "$dir_shared_www_custom"
 
 	# create chnroute.txt
 	if [ ! -d "$dir_chnroute" ] ; then
@@ -457,6 +462,21 @@ EOF
 
 EOF
 		chmod 755 "$script_ezbtn"
+	fi
+
+	# create post-systime script
+	if [ ! -f "$script_post_tc" ] ; then
+		cat > "$script_post_tc" <<EOF
+#!/bin/sh
+
+### Custom user script
+### Called after system time changed
+### \$1 - time offset in seconds
+
+logger -t "时间校对" " $1 秒"
+
+EOF
+		chmod 755 "$script_post_tc"
 	fi
 
 	# create user dnsmasq.conf
