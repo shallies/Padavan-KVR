@@ -905,6 +905,10 @@ function show_footer() {
 	var footer_code = '<div align="center" class="bottom-image"></div>\n';
 	footer_code += '<div align="center" class="copyright"><#footer_copyright_desc#></div>\n';
 
+	footer_code +='<div align="center">\n';
+	footer_code +='<span>Revised by <a href="https://github.com/shallies">hjh98</a></span>\n';
+	footer_code +='</div>\n';
+
 	$j("#footer").html(footer_code);
 
 	flash_button();
