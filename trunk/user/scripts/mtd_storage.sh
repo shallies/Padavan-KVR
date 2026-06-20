@@ -227,8 +227,8 @@ func_fill()
 	if [ ! -d "$dir_crond" ] ; then
 		mkdir -p -m 730 "$dir_crond"
 		cat > "$dir_crond/admin" <<EOF
-30 21 * * * /etc/storage/led.sh -OFF "定时关闭"
-30 06 * * * /etc/storage/led.sh -ON "定时开启"
+30 21 * * * /usr/bin/led.sh -OFF "定时关闭"
+30 06 * * * /usr/bin/led.sh -ON "定时开启"
 30 03 * * * /sbin/restart_wan
 EOF
 	fi
