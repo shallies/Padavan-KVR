@@ -300,6 +300,8 @@ EOF
 ### Called before router shutdown
 ### \$1 - action (0: reboot, 1: halt, 2: power-off)
 
+/usr/bin/led.sh red "正在关闭设备，开启红灯"
+
 EOF
 		chmod 755 "$script_shutd"
 	fi
