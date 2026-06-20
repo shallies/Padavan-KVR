@@ -100,9 +100,13 @@ jobs:
         sudo ./clear_tree
         sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
+
+    - name: Get current date
+      id: date
+      run: echo "BUILD_DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
     - name : Upload packages
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@4
       if: always()
       with:
-        name: Padavan-K2P-$(shell date +%Y%m%d 2>/dev/null)
+        name: Padavan-K2P-${{ steps.date.outputs.BUILD_DATE }}
         path: /opt/images
