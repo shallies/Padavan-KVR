@@ -104,5 +104,5 @@ jobs:
       uses: actions/upload-artifact@master
       if: always()
       with:
-        name: Padavan-K2P
+        name: Padavan-K2P-$(shell date +%Y%m%d 2>/dev/null)
         path: /opt/images
