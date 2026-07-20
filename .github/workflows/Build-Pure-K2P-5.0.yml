@@ -4,6 +4,10 @@ name: Build-Pure-K2P-5.0
 on: 
   workflow_dispatch:
 
+env:
+  TNAME: K2P
+  KERNEL: 3.4
+  DRIVER: 5.0
 
 jobs:
   build:
@@ -20,8 +24,6 @@ jobs:
         cpio git python3-docutils gettext automake autopoint texinfo build-essential help2man \
         pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
     - name: Clone source code
-      env:
-        KERNEL: 3.4
       run: |
         git clone --depth=1 https://github.com/shallies/Padavan-KVR.git /opt/rt-n56u
         cd /opt/rt-n56u/toolchain-mipsel
@@ -108,18 +110,19 @@ jobs:
         sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
         
+        echo "PackageName=$TNAME-$KERNEL-$DRIVER-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
         cd /opt/images
         # 遍历并重命名生成的 trx 文件（通常只有一个）
         for f in *.trx; do 
-          sudo mv "$f" "$TNAME-$KERNEL-5.0-$(date +%m%d.%H%M).trx"
+          sudo mv "$f" "${{ env.PackageName }}"
           break
         done
-        echo "PackageName=$TNAME-$KERNEL-5.0-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
         
     - name : Upload packages
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: ${{ env.PackageName }}
+        archive: false
         path: /opt/images/${{ env.PackageName }}
 
