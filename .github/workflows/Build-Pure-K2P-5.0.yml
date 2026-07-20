@@ -110,11 +110,11 @@ jobs:
         sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
         
-        echo "PackageName=$TNAME-$KERNEL-$DRIVER-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
+        echo "PackageName=$TNAME-$KERNEL-$DRIVER-$(date +%m%d.%H%M)" >> $GITHUB_ENV
         cd /opt/images
         # 遍历并重命名生成的 trx 文件（通常只有一个）
         for f in *.trx; do 
-          sudo mv "$f" "$PackageName"
+          sudo mv "$f" "$PackageName.trx"
           break
         done
         
@@ -122,7 +122,7 @@ jobs:
       uses: actions/upload-artifact@v7
       if: always()
       with:
-        name: ${{ env.PackageName }}
+        name: ${{ env.PackageName }}.trx
         archive: false
-        path: /opt/images/${{ env.PackageName }}
+        path: /opt/images/${{ env.PackageName }}.trx
 
