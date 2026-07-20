@@ -109,7 +109,7 @@ jobs:
         sudo mv -f images/*.trx /opt/images/
         
         cd /opt/images
-        echo "PackageName=$TNAME-4.4-5.0-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
+        echo "PackageName=$TNAME-$KERNEL-5.0-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
         # 遍历并重命名生成的 trx 文件（通常只有一个）
         for f in *.trx; do 
           sudo mv "$f" "$PackageName"
