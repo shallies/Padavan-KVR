@@ -114,7 +114,7 @@ jobs:
         cd /opt/images
         # 遍历并重命名生成的 trx 文件（通常只有一个）
         for f in *.trx; do 
-          sudo mv "$f" "$PackageName.trx"
+          sudo mv "$f" "$TNAME-$KERNEL-$DRIVER-$(date +%m%d.%H%M).trx"
           break
         done
         
