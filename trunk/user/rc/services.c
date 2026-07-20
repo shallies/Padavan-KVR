@@ -859,7 +859,7 @@ doSystem("/usr/sbin/skipd -d /etc/storage/db");
 	start_ttyd();
 #endif
 #if defined(APP_VLMCSD)
-	start_vlmcsd();
+	//start_vlmcsd();
 #endif
 	start_lltd();
 	start_watchdog_cpu();
