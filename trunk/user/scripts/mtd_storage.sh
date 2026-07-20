@@ -197,6 +197,7 @@ func_fill()
 	dir_wlan="$dir_storage/wlan"
 	dir_chnroute="$dir_storage/chinadns"
 	#dir_gfwlist="$dir_storage/gfwlist"
+	dir_shared_www_custom="$dir_storage/shared_www_custom"
 
 	script_start="$dir_storage/start_script.sh"
 	script_started="$dir_storage/started_script.sh"
@@ -222,10 +223,21 @@ func_fill()
 	#gfwlist_conf_file="/etc_ro/gfwlist.bz2"
 
 	# create crond dir
-	[ ! -d "$dir_crond" ] && mkdir -p -m 730 "$dir_crond"
+	if [ ! -d "$dir_crond" ] ; then
+		mkdir -p -m 730 "$dir_crond"
+		cat > "$dir_crond/admin" <<EOF
+30 21 * * * /usr/bin/led.sh -OFF "定时关闭"
+30 06 * * * /usr/bin/led.sh -ON "定时开启"
+30 03 * * * /sbin/restart_wan
+EOF
+	fi
 
 	# create https dir
 	[ ! -d "$dir_httpssl" ] && mkdir -p -m 700 "$dir_httpssl"
+
+	# create dir_shared_www_custom
+	[ ! -d "$dir_shared_www_custom" ] && mkdir -p -m 730 "$dir_shared_www_custom"
+	[ -d "$dir_shared_www_custom" ] && ln -sf /tmp "$dir_shared_www_custom/tmp"
 
 	# create chnroute.txt
 	if [ ! -d "$dir_chnroute" ] ; then
@@ -295,6 +307,8 @@ EOF
 ### Called before router shutdown
 ### \$1 - action (0: reboot, 1: halt, 2: power-off)
 
+/usr/bin/led.sh red "正在关闭设备，开启红灯"
+
 EOF
 		chmod 755 "$script_shutd"
 	fi
@@ -324,6 +338,43 @@ EOF
 ### \$1 - WAN action (up/down)
 ### \$2 - WAN interface name (e.g. eth3 or ppp0)
 ### \$3 - WAN IPv4 address
+
+case "$1" in
+up)
+vCron="/etc/storage/cron/crontabs/admin"
+vOn=`grep "led.sh \{1,\}-ON" $vCron 2>/dev/null|awk '{print $2*60+$1}'`
+vOff=`grep "led.sh \{1,\}-OFF" $vCron 2>/dev/null|awk '{print $2*60+$1}'`
+
+if [ "$vOn" = "" ] || [ "$vOff" = "" ]; then
+	vCur=0
+	vOn=0
+	vOff=1
+else
+	vOff=$(expr $vOff - $vOn )
+	while [ $vOff -le 0 ]; do
+		vOff=$((vOff+24*60))
+	done
+
+	vCur=$(expr `date +%H` \* 60 + `date +%M` - $vOn)
+	while [ $vCur -lt 0 ]; do
+		vCur=$((vCur+24*60))
+	done
+fi
+
+if [ $vCur -lt $vOff ]; then
+	/usr/bin/led.sh blue "Internet已连接，开启蓝灯"
+else
+	/usr/bin/led.sh -OFF "Internet已连接，关闭指示灯"
+fi
+;;
+
+down)
+/usr/bin/led.sh yellow "Internet未连接，开启黄灯"
+;;
+
+*)
+;;
+esac
 
 EOF
 		chmod 755 "$script_postw"
@@ -497,6 +548,11 @@ dhcp-option=252,"\n"
 
 ### Keep DHCP host name valid at any times
 #dhcp-to-host
+
+### Custom DNS
+address=/wukongtv.com/127.0.0.1
+address=/iiscn.local/192.168.2.1
+min-ttl=0
 
 EOF
 	if [ -f /usr/bin/vlmcsd ]; then
