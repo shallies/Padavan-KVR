@@ -109,28 +109,17 @@ jobs:
         sudo mv -f images/*.trx /opt/images/
         
         cd /opt/images
+        echo "PackageName=$TNAME-4.4-5.0-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
         # 遍历并重命名生成的 trx 文件（通常只有一个）
         for f in *.trx; do 
-          sudo mv "$f" "$TNAME-4.4-5.0-$(date +%m%d.%H%M).trx"
+          sudo mv "$f" "$PackageName"
           break
         done
-
-        echo "PackageName=$TNAME-4.4-5.0-$(date +%m%d.%H%M).trx" >> $GITHUB_ENV
         
     - name : Upload packages
       uses: actions/upload-artifact@master
       if: always()
       with:
         name: ${{ env.PackageName }}
-        path: /opt/images/*.trx
+        path: /opt/images/${{ env.PackageName }}
 
-    # 发布上传工具升级至v2最新版
-    - name: Upload firmware to GitHub Release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /opt/images/*.trx
-        # 如果你希望每次手动编译都覆盖同一个 Release，可以将其改为固定值，例如: tag: "K2P-5.0-Latest"
-        tag: ${{ github.ref_name }}
-        overwrite: true
-        file_glob: true
