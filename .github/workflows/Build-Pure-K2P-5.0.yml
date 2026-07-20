@@ -1,7 +1,9 @@
+#修改TNAME: K2P 中的K2P为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
 name: Build-Pure-K2P-5.0
 
 on: 
   workflow_dispatch:
+
 
 jobs:
   build:
@@ -17,33 +19,29 @@ jobs:
         sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot \
         cpio git python3-docutils gettext automake autopoint texinfo build-essential help2man \
         pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
-
     - name: Clone source code
       env:
         KERNEL: 3.4
       run: |
-        # [修正] 补充源码克隆步骤，否则 /opt/rt-n56u 目录不存在
         git clone --depth=1 https://github.com/shallies/Padavan-KVR.git /opt/rt-n56u
         cd /opt/rt-n56u/toolchain-mipsel
         sh dl_toolchain.sh
         mkdir -p /opt/images/
-
     - name: Build Firmware
       env:
         TNAME: K2P
         KERNEL: 3.4
-        PackageName: K2P
       run: |
         cd /opt/rt-n56u/trunk
         if [ ! -f configs/templates/$TNAME.config ] ; then
-          echo "configs/templates/$TNAME.config not found "
-          exit 1
+        echo "configs/templates/$TNAME.config not found "
+        exit 1
         fi
         cp -f configs/templates/$TNAME.config .config
+        ################################################################################################
+        #因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条，切记！！！
+        ################################################################################################
         
-        ################################################################################################
-        # 因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条，切记！！！
-        ################################################################################################
         sed -i 's/CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=y/CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=n/g' .config
         sed -i 's/CONFIG_FIRMWARE_INCLUDE_MENTOHUST=y/CONFIG_FIRMWARE_INCLUDE_MENTOHUST=n/g' .config
         sed -i 's/CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=y/CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=n/g' .config
@@ -69,9 +67,8 @@ jobs:
         sed -i '/CONFIG_FIRMWARE_INCLUDE_NPC/d' .config
         sed -i '/CONFIG_FIRMWARE_WEBUI_HIDE_VPN/d' .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_OPENVPN/d' .config
-        
         ######################################################################
-        # 以下选项是定义你需要的功能（y=集成,n=忽略），重新写入到.config文件
+        #以下选项是定义你需要的功能（y=集成,n=忽略），重新写入到.config文件
         ######################################################################
         ##内网穿透
         #echo "CONFIG_FIRMWARE_INCLUDE_NPC=y" >> .config
@@ -90,46 +87,19 @@ jobs:
         #echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD=y" >> .config
         
         ###############################################################################
-        # 自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
-        # 格式如下：
-        # sed -i '/自定义项/d' .config
-        # echo "自定义项=y" >> .config
+        ##########
+        #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
+        #格式如下：
+        #sed -i '/自定义项/d' .config
+        #echo "自定义项=y" >> .config
         #########################################################################################
-        
-        # [优化] 使用 \r$ 更精确地只删除行尾的 DOS 回车符
-        sed -i 's/\r$//' /opt/rt-n56u/trunk/.config
+        sed -i 's/\r//' /opt/rt-n56u/trunk/.config
         sudo ./clear_tree
         sudo ./build_firmware_modify $TNAME 0
-        
-        # [修正] 先整体移动到目录，避免 *.trx 匹配到多个文件时 mv 命令报错
         sudo mv -f images/*.trx /opt/images/
-        cd /opt/images
-        # 遍历并重命名生成的 trx 文件（通常只有一个）
-        for f in *.trx; do 
-          sudo mv "$f" "$TNAME-4.4-5.0-$(date +%m%d.%H%M).trx"
-          break
-        done
-
-        # [修正] 加上 .trx 后缀，确保后续步骤引用的是完整文件名
-        echo "PackageName=$TNAME-4.4-5.0-$(date +%m%d.%H%M)" >> $GITHUB_ENV
-        
-    - name: Upload packages
-      uses: actions/upload-artifact@v4
+    - name : Upload packages
+      uses: actions/upload-artifact@master
       if: always()
       with:
-        name: ${{ env.PackageName }}
-        # [优化] 明确指定上传 .trx 文件，避免上传整个目录下的无关内容
-        path: /opt/images/*.trx 
-
-    # 发布上传工具升级至v2最新版
-    - name: Upload firmware to GitHub Release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        # [修正] 直接使用 glob 匹配所有 trx 文件，更加健壮，不再依赖变量拼接
-        file: /opt/images/*.trx
-        # [修正] github.ref 会包含 refs/heads/，不适合作为 tag。改用 ref_name (如 main/master) 
-        # 如果你希望每次手动编译都覆盖同一个 Release，可以将其改为固定值，例如: tag: "K2P-5.0-Latest"
-        tag: ${{ github.ref_name }}
-        overwrite: true
-        file_glob: true
+        name: Padavan-packages
+        path: /opt/images
