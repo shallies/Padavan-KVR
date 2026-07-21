@@ -7,7 +7,8 @@ on:
 env:
   TNAME: K2P
   KERNEL: "3.4"
-  WIFI: "5.0"
+  WIFI: "5.0"  
+  BUSYBOX: "1.34.1"
 
 jobs:
   build:
@@ -35,6 +36,10 @@ jobs:
         KERNEL: 3.4
       run: |
         cd /opt/rt-n56u/trunk
+
+        sed -i 's/busybox_id="[0-9.]*"/busybox_id="$BUSYBOX"/g' ./build_fimware_modify
+        sed -i 's/SRC_NAME=busybox-[0-9.]*/SRC_NAME=busybox-$BUSYBOX/g' ./user/busybox/Makefile
+        
         if [ ! -f configs/templates/$TNAME.config ] ; then
         echo "configs/templates/$TNAME.config not found "
         exit 1
