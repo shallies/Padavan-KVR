@@ -37,8 +37,8 @@ jobs:
       run: |
         cd /opt/rt-n56u/trunk
 
-        sed -i 's/busybox_id="[0-9.]*"/busybox_id="$BUSYBOX"/g' ./build_firmware_modify
-        sed -i 's/SRC_NAME=busybox-[0-9.]*/SRC_NAME=busybox-$BUSYBOX/g' ./user/busybox/Makefile
+        sed -i "s/busybox_id=\"[0-9.]*\"/busybox_id=\"$BUSYBOX\"/g" ./build_firmware_modify
+        sed -i "s/SRC_NAME=busybox-[0-9.]*/SRC_NAME=busybox-$BUSYBOX/g" ./user/busybox/Makefile
         
         if [ ! -f configs/templates/$TNAME.config ] ; then
         echo "configs/templates/$TNAME.config not found "
