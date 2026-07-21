@@ -558,7 +558,7 @@ EOF
 	if [ -f /usr/bin/vlmcsd ]; then
 		cat >> "$user_dnsmasq_conf" <<EOF
 ### vlmcsd related
-srv-host=_vlmcs._tcp,my.router,1688,0,100
+srv-host=_vlmcs._tcp,kms.iiscn.local,1688,0,100
 
 EOF
 	fi
