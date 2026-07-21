@@ -8,7 +8,7 @@ env:
   TNAME: K2P
   KERNEL: "3.4"
   WIFI: "5.0"  
-  BUSYBOX: "1.34.1"
+  BUSYBOX: "1.24.x"
 
 jobs:
   build:
