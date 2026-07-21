@@ -6,8 +6,8 @@ on:
 
 env:
   TNAME: K2P
-  KERNEL: 3.4
-  WIFI: 5.0
+  KERNEL: "3.4"
+  WIFI: "5.0"
 
 jobs:
   build:
