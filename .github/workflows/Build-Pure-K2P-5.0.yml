@@ -4,12 +4,6 @@ name: Build-Pure-K2P-5.0
 on: 
   workflow_dispatch:
 
-env:
-  TNAME: K2P
-  KERNEL: "3.4"
-  WIFI: "5.0"  
-  BUSYBOX: "1.24.x"
-
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -34,6 +28,8 @@ jobs:
       env:
         TNAME: K2P
         KERNEL: 3.4
+        WIFI: "5.0"  
+        BUSYBOX: "1.24.x"
       run: |
         cd /opt/rt-n56u/trunk
 
