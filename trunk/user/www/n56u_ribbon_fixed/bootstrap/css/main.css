@@ -9,6 +9,13 @@ body.body_iframe{
     overflow-y: auto;
 }
 
+a:link,
+a:visited,
+a:active {
+    color: blue;
+    text-decoration: none;
+}
+
 .wrapper {
     width: 960px;
     margin: 0 auto;
