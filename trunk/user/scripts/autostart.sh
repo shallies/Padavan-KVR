@@ -14,7 +14,7 @@ logger -t "自动启动" "正在启动文件管理 ……"
 /usr/bin/caddy.sh start
 fi
 
-logger -t "自动启动" "正在检查互联网连接状态 ……"
+logger -t "自动启动" "正在检查网络连接状态 ……"
 server_to_ping=`nvram get di_addr5`
 if [ "$server_to_ping" = "" ]; then
 	server_to_ping="8.8.8.8"
